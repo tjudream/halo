@@ -1,7 +1,5 @@
 package run.halo.app.service.impl;
 
-import cn.hutool.core.text.StrBuilder;
-import cn.hutool.crypto.SecureUtil;
 import cn.hutool.crypto.digest.BCrypt;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationEventPublisher;
@@ -9,13 +7,14 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-import run.halo.app.cache.StringCacheStore;
+import run.halo.app.cache.AbstractStringCacheStore;
 import run.halo.app.cache.lock.CacheLock;
 import run.halo.app.event.logger.LogEvent;
 import run.halo.app.event.user.UserUpdatedEvent;
 import run.halo.app.exception.BadRequestException;
 import run.halo.app.exception.ForbiddenException;
 import run.halo.app.exception.NotFoundException;
+import run.halo.app.exception.ServiceException;
 import run.halo.app.model.entity.User;
 import run.halo.app.model.enums.LogType;
 import run.halo.app.model.params.UserParam;
@@ -42,12 +41,12 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
 
     private final UserRepository userRepository;
 
-    private final StringCacheStore stringCacheStore;
+    private final AbstractStringCacheStore stringCacheStore;
 
     private final ApplicationEventPublisher eventPublisher;
 
     public UserServiceImpl(UserRepository userRepository,
-                           StringCacheStore stringCacheStore,
+                           AbstractStringCacheStore stringCacheStore,
                            ApplicationEventPublisher eventPublisher) {
         super(userRepository);
         this.userRepository = userRepository;
@@ -76,7 +75,7 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
 
     @Override
     public User getByUsernameOfNonNull(String username) {
-        return getByUsername(username).orElseThrow(() -> new NotFoundException("The username dose not exist").setErrorData(username));
+        return getByUsername(username).orElseThrow(() -> new NotFoundException("The username does not exist").setErrorData(username));
     }
 
     @Override
@@ -86,7 +85,7 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
 
     @Override
     public User getByEmailOfNonNull(String email) {
-        return getByEmail(email).orElseThrow(() -> new NotFoundException("The email dose not exist").setErrorData(email));
+        return getByEmail(email).orElseThrow(() -> new NotFoundException("The email does not exist").setErrorData(email));
     }
 
     @Override
@@ -184,11 +183,8 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
     }
 
     @Override
-    public void setDefaultAvatar(User user) {
-        Assert.notNull(user, "User must not be null");
-        StrBuilder gravatar = new StrBuilder("//cn.gravatar.com/avatar/");
-        gravatar.append(SecureUtil.md5(user.getEmail()));
-        gravatar.append("?s=256&d=mm");
-        user.setAvatar(gravatar.toString());
+    public boolean verifyUser(String username, String password) {
+        User user = getCurrentUser().orElseThrow(() -> new ServiceException("未查询到博主信息"));
+        return user.getUsername().equals(username) && user.getEmail().equals(password);
     }
 }

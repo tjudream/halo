@@ -4,6 +4,7 @@ import org.springframework.lang.NonNull;
 import run.halo.app.model.dto.EnvironmentDTO;
 import run.halo.app.model.dto.StatisticDTO;
 import run.halo.app.model.params.LoginParam;
+import run.halo.app.model.params.ResetPasswordParam;
 import run.halo.app.security.token.AuthToken;
 
 /**
@@ -22,11 +23,9 @@ public interface AdminService {
 
     int REFRESH_TOKEN_EXPIRED_DAYS = 30;
 
-    String ACCESS_TOKEN_CACHE_PREFIX = "halo.admin.access_token.";
+    String APPLICATION_CONFIG_NAME = "application.yaml";
 
-    String REFRESH_TOKEN_CACHE_PREFIX = "halo.admin.refresh_token.";
-
-    String LOGS_PATH = "logs/spring.log";
+    String LOG_PATH = "logs/spring.log";
 
     /**
      * Authenticates.
@@ -43,11 +42,26 @@ public interface AdminService {
     void clearToken();
 
     /**
+     * Send reset password code to administrator's email.
+     *
+     * @param param param must not be null
+     */
+    void sendResetPasswordCode(@NonNull ResetPasswordParam param);
+
+    /**
+     * Reset password by code.
+     *
+     * @param param param must not be null
+     */
+    void resetPasswordByCode(@NonNull ResetPasswordParam param);
+
+    /**
      * Get system counts.
      *
      * @return count dto
      */
     @NonNull
+    @Deprecated
     StatisticDTO getCount();
 
     /**
@@ -73,8 +87,24 @@ public interface AdminService {
     void updateAdminAssets();
 
     /**
-     * Get spring logs.
-     * @return recently logs.
+     * Get application.yaml content.
+     *
+     * @return application.yaml content
      */
-    String getSpringLogs();
+    String getApplicationConfig();
+
+    /**
+     * Save application.yaml content.
+     *
+     * @param content new content
+     */
+    void updateApplicationConfig(@NonNull String content);
+
+    /**
+     * Get halo logs content.
+     *
+     * @param lines lines
+     * @return logs content.
+     */
+    String getLogFiles(@NonNull Long lines);
 }
